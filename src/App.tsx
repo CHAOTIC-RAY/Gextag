@@ -224,40 +224,24 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-brand-bg text-white">
-      <header className="border-b border-brand-border flex flex-row items-center justify-between p-4 md:p-5 gap-4 md:gap-5 shrink-0 bg-brand-bg relative">
-          <div className="flex flex-col items-start shrink-0">
+      <header className="border-b border-brand-border flex flex-row items-center justify-between p-4 md:p-5 gap-4 md:gap-5 shrink-0 bg-brand-bg">
+          <div className="flex flex-col items-start w-full md:w-auto">
             <span className="text-[9px] md:text-[11px] uppercase tracking-[0.2em] text-brand-muted">Gextag v3.0</span>
-            <img src="/logo.svg" alt="GexTag Logo" className="h-[22px] sm:h-[30px] md:h-[40px] object-contain mt-0.5" />
+            <img src="/logo.svg" alt="GexTag Logo" className="h-[24px] sm:h-[30px] md:h-[50px] object-contain mt-0.5" />
           </div>
-          
-          <div className="flex flex-col items-end text-right justify-center gap-1.5 md:gap-2">
-            {/* Passion credits - opposite side of Gextag logo */}
-            <div className="flex flex-col items-end text-right text-[8px] sm:text-[9px] uppercase tracking-wider text-brand-muted shrink-0 select-none">
-              <span className="font-bold text-white leading-tight">Created from passion by chaos.studio.mv</span>
-              <div className="hidden sm:flex flex-row flex-wrap items-center justify-end gap-x-2 gap-y-0 text-[7.5px] font-mono mt-0.5 text-brand-muted/80">
-                <a href="mailto:chaos.studio.mv@gmail.com" className="hover:text-brand-accent transition-colors">chaos.studio.mv@gmail.com</a>
-                <span>•</span>
-                <span>+960 9401011 (Telegram)</span>
-                <span>•</span>
-                <a href="https://portfolio.chaoticstudio.workers.dev/studio" target="_blank" rel="noopener noreferrer" className="hover:text-brand-accent transition-colors">chaos.studio</a>
-              </div>
-            </div>
-
-            {/* Navigation Tabs for desktop */}
-            <div className="hidden md:flex h-[24px] gap-6 items-center w-auto justify-end">
-              <button 
-                onClick={() => setMapTab('tagging')} 
-                className={`h-full border-b-2 font-black uppercase tracking-[0.2em] text-[10px] transition-colors whitespace-nowrap pb-1 ${mapTab === 'tagging' ? 'border-brand-accent text-white' : 'border-transparent text-brand-muted hover:text-white'}`}
-              >
-                Geotagger
-              </button>
-              <button 
-                onClick={() => setMapTab('export')} 
-                className={`h-full border-b-2 font-black uppercase tracking-[0.2em] text-[10px] transition-colors whitespace-nowrap pb-1 ${mapTab === 'export' ? 'border-brand-accent text-white' : 'border-transparent text-brand-muted hover:text-white'}`}
-              >
-                Map Export (Beta)
-              </button>
-            </div>
+          <div className="hidden md:flex h-[40px] gap-8 items-center mt-6 w-auto justify-end">
+            <button 
+              onClick={() => setMapTab('tagging')} 
+              className={`h-full border-b-2 font-bold uppercase tracking-[0.2em] text-[11px] transition-colors whitespace-nowrap ${mapTab === 'tagging' ? 'border-brand-accent text-white' : 'border-transparent text-brand-muted hover:text-white'}`}
+            >
+              Geotagger
+            </button>
+            <button 
+              onClick={() => setMapTab('export')} 
+              className={`h-full border-b-2 font-bold uppercase tracking-[0.2em] text-[11px] transition-colors whitespace-nowrap ${mapTab === 'export' ? 'border-brand-accent text-white' : 'border-transparent text-brand-muted hover:text-white'}`}
+            >
+              Map Export (Beta)
+            </button>
           </div>
       </header>
 
@@ -353,7 +337,7 @@ export default function App() {
           </section>
         </main>
 
-        <footer className={mapTab === 'tagging' ? "shrink-0 flex flex-col bg-brand-bg border-t border-brand-border" : "hidden"}>
+        <footer className="shrink-0 flex flex-col bg-brand-bg border-t border-brand-border">
           {mapTab === 'tagging' && (
             <div className="min-h-[80px] p-4 md:p-[0_20px] flex flex-col md:flex-row items-center justify-between border-b border-[#111] gap-4 md:gap-0">
               <div className="w-full md:w-auto flex justify-between md:justify-start items-center shrink-0">
@@ -380,6 +364,15 @@ export default function App() {
               </div>
             </div>
           )}
+          <div className="flex justify-center items-center py-2 px-4 text-[10px] uppercase tracking-widest text-brand-muted gap-2 text-center flex-wrap">
+            <span>Created from passion by chaos.studio.mv</span>
+            <span className="hidden sm:inline">•</span>
+            <a href="mailto:chaos.studio.mv@gmail.com" className="hover:text-brand-accent transition-colors">chaos.studio.mv@gmail.com</a>
+            <span className="hidden sm:inline">•</span>
+            <span>+960 9401011 (Telegram)</span>
+            <span className="hidden sm:inline">•</span>
+            <a href="https://portfolio.chaoticstudio.workers.dev/studio" target="_blank" rel="noopener noreferrer" className="hover:text-brand-accent transition-colors">chaos.studio</a>
+          </div>
         </footer>
 
         {/* Bottom Navigation Bar for Mobile */}

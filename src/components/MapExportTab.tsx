@@ -234,9 +234,15 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
       <div className="flex-grow w-full h-full relative overflow-y-auto md:overflow-hidden flex flex-col md:flex-row">
         
         {/* LEFT PANEL: Canvas Settings */}
-        <div className="relative md:absolute md:top-4 md:left-4 z-[1000] w-full md:w-[280px] bg-brand-surface/95 backdrop-blur-md border-b md:border border-brand-border md:rounded shadow-2xl transition-all duration-300">
+        <div className="absolute top-4 left-4 z-[1000] w-[280px] max-w-[calc(100vw-32px)] bg-brand-surface/95 backdrop-blur-md border border-brand-border rounded shadow-2xl transition-all duration-300">
           <div 
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            onClick={() => {
+              const nextState = !isSettingsOpen;
+              setIsSettingsOpen(nextState);
+              if (nextState && window.innerWidth < 768) {
+                setIsLayersOpen(false);
+              }
+            }}
             className="flex items-center justify-between p-3 border-b border-brand-border/60 cursor-pointer hover:bg-white/5 select-none"
           >
             <div className="flex items-center gap-2">
@@ -342,9 +348,15 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
         </div>
 
         {/* RIGHT PANEL: Map Layers Stack */}
-        <div className="relative md:absolute md:top-4 md:right-4 z-[1000] w-full md:w-[280px] bg-brand-surface/95 backdrop-blur-md border-b md:border border-brand-border md:rounded shadow-2xl transition-all duration-300">
+        <div className="absolute top-16 md:top-4 right-4 z-[1000] w-[280px] max-w-[calc(100vw-32px)] bg-brand-surface/95 backdrop-blur-md border border-brand-border rounded shadow-2xl transition-all duration-300">
           <div 
-            onClick={() => setIsLayersOpen(!isLayersOpen)}
+            onClick={() => {
+              const nextState = !isLayersOpen;
+              setIsLayersOpen(nextState);
+              if (nextState && window.innerWidth < 768) {
+                setIsSettingsOpen(false);
+              }
+            }}
             className="flex items-center justify-between p-3 border-b border-brand-border/60 cursor-pointer hover:bg-white/5 select-none"
           >
             <div className="flex items-center gap-2">
