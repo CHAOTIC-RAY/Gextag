@@ -181,9 +181,13 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
         pixelRatio: scale,
         width: width,
         height: height,
+        cacheBust: true,
+        skipFonts: true,
+        imagePlaceholder: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
         style: {
           transform: 'scale(1)',
-          transformOrigin: 'top left'
+          transformOrigin: 'top left',
+          backgroundColor: '#000'
         }
       };
 
@@ -265,6 +269,7 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
                           bounds={layer.bounds as L.LatLngBoundsExpression}
                           className={layer.className}
                           crossOrigin="anonymous"
+                          errorTileUrl="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                         />
                       );
                     }
@@ -279,6 +284,7 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
                         maxNativeZoom={layer.maxNativeZoom}
                         maxZoom={layer.maxZoom}
                         crossOrigin="anonymous"
+                        errorTileUrl="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                       />
                     );
                   })}
