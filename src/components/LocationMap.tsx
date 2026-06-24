@@ -66,8 +66,15 @@ const LocationMarker = ({ location, onLocationSelect }: MapProps) => {
 function MapController({ center }: { center: {lat: number, lng: number} }) {
   const map = useMap();
   useEffect(() => {
-    map.flyTo(center, 13);
+    map.flyTo(center, 13, { animate: false });
   }, [center, map]);
+  
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, [map]);
   return null;
 }
 

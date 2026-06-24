@@ -23,11 +23,20 @@ const customIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-const MapController = ({ center }: { center: { lat: number, lng: number } }) => {
+const MapController = ({ center, displayScale }: { center: { lat: number, lng: number }, displayScale: number }) => {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, map.getZoom());
+    map.setView(center, map.getZoom(), { animate: false });
   }, [center, map]);
+  
+  useEffect(() => {
+    // Invalidate size to prevent black triangles / rendering artifacts
+    const timeout = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, [map, displayScale]);
+  
   return null;
 };
 
@@ -84,25 +93,9 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
     }
   };
 
-  const [containerWidth, setContainerWidth] = useState(500);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        setContainerWidth(Math.max(200, entry.contentRect.width));
-      }
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  const displayScale = Math.min(1, containerWidth / width);
-
   return (
     <div className="h-full w-full bg-black text-white p-4 overflow-y-auto flex flex-col items-center">
-      <div className="w-full max-w-5xl" ref={containerRef}>
+      <div className="w-full max-w-5xl">
         <div className="flex flex-col gap-4 mb-4 bg-brand-surface p-4 border border-brand-border">
           <h2 className="text-[12px] uppercase tracking-widest font-bold text-brand-accent mb-2">Export Settings</h2>
         
@@ -156,39 +149,36 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
         </button>
       </div>
 
-      <div className="text-[10px] text-brand-muted mb-2 uppercase tracking-widest">
-        Preview (Scaled to fit) - Drag marker to position
+      <div className="text-[10px] text-brand-muted mb-2 uppercase tracking-widest mt-4">
+        Preview (Native Size) - Drag marker to position - Scroll to view
       </div>
 
-      {/* Wrapper to handle scaling down large maps for preview */}
-      <div className="relative overflow-hidden border border-brand-border bg-brand-surface" style={{ width: width * displayScale, height: height * displayScale }}>
-        <div style={{ width, height, transform: `scale(${displayScale})`, transformOrigin: 'top left' }}>
-          <div ref={mapRef} style={{ width: '100%', height: '100%' }}>
-            <MapContainer
-              center={center}
-              zoom={15}
-              zoomControl={false}
-              style={{ height: '100%', width: '100%', background: '#000' }}
-            >
-              <TileLayer
-                key={theme.id} // force re-render on theme change
-                url={theme.url}
-                attribution={theme.attribution}
-                crossOrigin="anonymous" // required for exporting canvas
-              />
-              <Marker 
-                position={markerPos} 
-                icon={customIcon}
-                draggable={true}
-                eventHandlers={{
-                  dragend: (e) => {
-                    setMarkerPos(e.target.getLatLng());
-                  }
-                }}
-              />
-              <MapController center={center} />
-            </MapContainer>
-          </div>
+      <div className="w-full overflow-auto border border-brand-border bg-brand-surface" style={{ maxHeight: '600px' }}>
+        <div ref={mapRef} style={{ width, height }}>
+          <MapContainer
+            center={center}
+            zoom={15}
+            zoomControl={false}
+            style={{ height: '100%', width: '100%', background: '#000' }}
+          >
+            <TileLayer
+              key={theme.id} // force re-render on theme change
+              url={theme.url}
+              attribution={theme.attribution}
+              crossOrigin="anonymous" // required for exporting canvas
+            />
+            <Marker 
+              position={markerPos} 
+              icon={customIcon}
+              draggable={true}
+              eventHandlers={{
+                dragend: (e) => {
+                  setMarkerPos(e.target.getLatLng());
+                }
+              }}
+            />
+            <MapController center={center} displayScale={1} />
+          </MapContainer>
         </div>
       </div>
       </div>

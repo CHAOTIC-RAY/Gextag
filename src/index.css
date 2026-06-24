@@ -16,3 +16,28 @@ body {
   background-color: var(--color-brand-bg);
   color: white;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-brand-bg);
+  border-left: 1px solid var(--color-brand-border);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-brand-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-muted);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-brand-border) var(--color-brand-bg);
+}

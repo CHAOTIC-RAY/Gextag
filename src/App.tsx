@@ -211,22 +211,22 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-brand-bg text-white">
-      <header className="border-b border-brand-border flex items-center justify-between p-5 gap-5 shrink-0">
-          <div className="flex flex-col">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-brand-muted mb-2">Gextag v3.0</span>
-            <img src="/logo.svg" alt="GexTag Logo" className="h-[40px] sm:h-[50px] md:h-[60px] object-contain" />
+    <div className="flex flex-col min-h-[100dvh] md:h-[100dvh] overflow-y-auto md:overflow-hidden bg-brand-bg text-white">
+      <header className="border-b border-brand-border flex flex-col md:flex-row items-center justify-between p-4 md:p-5 gap-4 md:gap-5 shrink-0">
+          <div className="flex flex-col items-center md:items-start w-full md:w-auto">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-brand-muted mb-1 md:mb-2">Gextag v3.0</span>
+            <img src="/logo.svg" alt="GexTag Logo" className="h-[30px] sm:h-[40px] md:h-[60px] object-contain" />
           </div>
-          <div className="flex h-[40px] gap-8 items-center mt-6">
+          <div className="flex h-[30px] md:h-[40px] gap-4 md:gap-8 items-center mt-2 md:mt-6 w-full md:w-auto justify-center md:justify-end">
             <button 
               onClick={() => setMapTab('tagging')} 
-              className={`h-full border-b-2 font-bold uppercase tracking-[0.2em] text-[11px] transition-colors ${mapTab === 'tagging' ? 'border-brand-accent text-white' : 'border-transparent text-brand-muted hover:text-white'}`}
+              className={`h-full border-b-2 font-bold uppercase tracking-[0.1em] md:tracking-[0.2em] text-[9px] md:text-[11px] transition-colors whitespace-nowrap ${mapTab === 'tagging' ? 'border-brand-accent text-white' : 'border-transparent text-brand-muted hover:text-white'}`}
             >
               Spatial Visualization
             </button>
             <button 
               onClick={() => setMapTab('export')} 
-              className={`h-full border-b-2 font-bold uppercase tracking-[0.2em] text-[11px] transition-colors ${mapTab === 'export' ? 'border-brand-accent text-white' : 'border-transparent text-brand-muted hover:text-white'}`}
+              className={`h-full border-b-2 font-bold uppercase tracking-[0.1em] md:tracking-[0.2em] text-[9px] md:text-[11px] transition-colors whitespace-nowrap ${mapTab === 'export' ? 'border-brand-accent text-white' : 'border-transparent text-brand-muted hover:text-white'}`}
             >
               Map Export (Beta)
             </button>
@@ -256,7 +256,7 @@ export default function App() {
           </section>
 
           {/* Center Column: Map */}
-          <section className="flex flex-col flex-grow relative bg-black shrink-0 md:shrink overflow-hidden">
+          <section className="flex flex-col flex-grow relative bg-black shrink-0 md:shrink overflow-hidden min-h-[60vh] md:min-h-0">
             <div className="h-auto md:h-[46px] px-5 py-2 md:py-0 text-[10px] uppercase tracking-[0.3em] text-brand-muted border-b border-brand-border bg-brand-bg shrink-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-0">
               <div className="flex h-[30px] md:h-full gap-4 items-center w-full md:w-auto border-b border-[#333] md:border-none pb-2 md:pb-0">
                 <span className="font-bold text-white">
@@ -326,27 +326,27 @@ export default function App() {
         </main>
 
         <footer className="shrink-0 flex flex-col bg-brand-bg border-t border-brand-border">
-          <div className="h-[80px] p-[0_20px] flex items-center justify-between border-b border-[#111]">
-            <div>
+          <div className="min-h-[80px] p-4 md:p-[0_20px] flex flex-col md:flex-row items-center justify-between border-b border-[#111] gap-4 md:gap-0">
+            <div className="w-full md:w-auto flex justify-between md:justify-start items-center">
               <span className="text-brand-muted text-[12px] mr-5 uppercase tracking-widest font-bold hidden sm:inline">
                 Selected: {selectedLocation ? `${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}` : 'None'}
               </span>
-              <button onClick={handleReset} className="bg-transparent text-white border border-[#333] p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-surface hover:text-brand-pin transition-colors">
+              <button onClick={handleReset} className="w-full md:w-auto bg-transparent text-white border border-[#333] p-[10px_20px] md:p-[12px_30px] font-black uppercase text-[12px] md:text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-surface hover:text-brand-pin transition-colors">
                 Clear All
               </button>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-2 md:gap-4 w-full md:w-auto flex-wrap md:flex-nowrap justify-center">
                <button onClick={() => {
                   setEditingPhotoId(null);
                   setIsBatchModalOpen(true);
-                }} className="bg-transparent text-white border border-[#333] p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-surface transition-colors hidden md:block">
+                }} className="flex-1 md:flex-none bg-transparent text-white border border-[#333] p-[10px_10px] md:p-[12px_30px] font-black uppercase text-[10px] md:text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-surface transition-colors whitespace-nowrap">
                 Batch Edit
               </button>
-              <button onClick={handleTagAll} className="bg-brand-surface text-brand-accent border border-brand-accent p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-accent hover:text-black transition-colors hidden sm:block">
+              <button onClick={handleTagAll} className="flex-1 md:flex-none bg-brand-surface text-brand-accent border border-brand-accent p-[10px_10px] md:p-[12px_30px] font-black uppercase text-[10px] md:text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-accent hover:text-black transition-colors whitespace-nowrap">
                 Tag Queue
               </button>
-              <button disabled={isProcessing} onClick={() => setIsExportModalOpen(true)} className="bg-white text-black border-none p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-gray-200 transition-colors disabled:opacity-50">
-                {isProcessing ? "Processing..." : `Export Batch (${photos.length.toString().padStart(2, '0')})`}
+              <button disabled={isProcessing} onClick={() => setIsExportModalOpen(true)} className="flex-1 md:flex-none w-full sm:w-auto bg-white text-black border-none p-[10px_10px] md:p-[12px_30px] font-black uppercase text-[10px] md:text-[14px] tracking-[0.1em] cursor-pointer hover:bg-gray-200 transition-colors disabled:opacity-50 whitespace-nowrap mt-2 sm:mt-0">
+                {isProcessing ? "Wait..." : `Export (${photos.length.toString().padStart(2, '0')})`}
               </button>
             </div>
           </div>
