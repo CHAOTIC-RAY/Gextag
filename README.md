@@ -1,6 +1,6 @@
 # GexTag
 
-GexTag is a powerful, client-side bulk geotagging and EXIF metadata utility. Designed with a sleek, high-contrast "Chaos Studio" aesthetic, it allows users to effortlessly inject spatial data, copyrights, dates, and keywords into their photos entirely within the browser.
+GexTag is a powerful, client-side bulk geotagging and EXIF metadata utility. Designed with a sleek, high-contrast aesthetic, it allows users to effortlessly inject spatial data, copyrights, dates, and keywords into their photos entirely within the browser.
 
 ## How It Works
 
