@@ -233,8 +233,65 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
       {/* Workspace Area with Fixed Control Panels & Scrollable Canvas Container */}
       <div className="flex-grow w-full h-full relative overflow-y-auto md:overflow-hidden flex flex-col md:flex-row">
         
+        {/* CANVAS PREVIEW AREA (The interactive workspace) */}
+        <div className="flex-grow overflow-auto p-4 md:p-12 bg-[#090909] flex items-center justify-center relative z-0 min-h-[400px]">
+          {/* Scrollable container mirroring the user-specified export resolution */}
+          <div className="shadow-2xl border border-brand-border/60 overflow-hidden bg-black shrink-0 relative transition-all duration-300">
+            <div ref={mapRef} style={{ width, height, position: 'relative' }}>
+              <MapContainer
+                center={center}
+                zoom={15}
+                zoomControl={true}
+                style={{ height: '100%', width: '100%', background: '#000' }}
+              >
+                {/* Dynamically build stacked TileLayers based on blend configuration */}
+                {/* Fixed key to ensure buttery-smooth continuous hardware-accelerated opacity sliding! */}
+                {exportLayers
+                  .filter(layer => layer.checked)
+                  .map(layer => {
+                    if (layer.bounds) {
+                      return (
+                        <TileLayer
+                          key={layer.id}
+                          url={layer.url}
+                          attribution={layer.attribution}
+                          opacity={layer.opacity}
+                          zIndex={layer.zIndex}
+                          bounds={layer.bounds as L.LatLngBoundsExpression}
+                          className={layer.className}
+                          crossOrigin="anonymous"
+                        />
+                      );
+                    }
+                    return (
+                      <TileLayer
+                        key={layer.id}
+                        url={layer.url}
+                        attribution={layer.attribution}
+                        opacity={layer.opacity}
+                        zIndex={layer.zIndex}
+                        crossOrigin="anonymous"
+                      />
+                    );
+                  })}
+                <Marker 
+                  position={markerPos} 
+                  icon={customIcon}
+                  draggable={true}
+                  eventHandlers={{
+                    dragend: (e) => {
+                      setMarkerPos(e.target.getLatLng());
+                    }
+                  }}
+                />
+                <MapController center={center} width={width} height={height} />
+              </MapContainer>
+            </div>
+          </div>
+        </div>
+
         {/* LEFT PANEL: Canvas Settings */}
-        <div className="absolute top-4 left-4 z-[1000] w-[280px] max-w-[calc(100vw-32px)] bg-brand-surface/95 backdrop-blur-md border border-brand-border rounded shadow-2xl transition-all duration-300">
+        <div className="relative md:absolute md:top-4 md:left-4 z-[1000] w-full md:w-[280px] bg-brand-surface/95 backdrop-blur-md border-b md:border border-brand-border md:rounded shadow-2xl transition-all duration-300">
           <div 
             onClick={() => {
               const nextState = !isSettingsOpen;
@@ -348,7 +405,7 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
         </div>
 
         {/* RIGHT PANEL: Map Layers Stack */}
-        <div className="absolute top-16 md:top-4 right-4 z-[1000] w-[280px] max-w-[calc(100vw-32px)] bg-brand-surface/95 backdrop-blur-md border border-brand-border rounded shadow-2xl transition-all duration-300">
+        <div className="relative md:absolute md:top-4 md:right-4 z-[1000] w-full md:w-[280px] bg-brand-surface/95 backdrop-blur-md border-b md:border border-brand-border md:rounded shadow-2xl transition-all duration-300">
           <div 
             onClick={() => {
               const nextState = !isLayersOpen;
@@ -452,63 +509,6 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
               </div>
             </div>
           )}
-        </div>
-
-        {/* CANVAS PREVIEW AREA (The interactive workspace) */}
-        <div className="flex-grow overflow-auto p-4 md:p-12 bg-[#090909] flex items-center justify-center relative z-0 min-h-[400px]">
-          {/* Scrollable container mirroring the user-specified export resolution */}
-          <div className="shadow-2xl border border-brand-border/60 overflow-hidden bg-black shrink-0 relative transition-all duration-300">
-            <div ref={mapRef} style={{ width, height, position: 'relative' }}>
-              <MapContainer
-                center={center}
-                zoom={15}
-                zoomControl={true}
-                style={{ height: '100%', width: '100%', background: '#000' }}
-              >
-                {/* Dynamically build stacked TileLayers based on blend configuration */}
-                {/* Fixed key to ensure buttery-smooth continuous hardware-accelerated opacity sliding! */}
-                {exportLayers
-                  .filter(layer => layer.checked)
-                  .map(layer => {
-                    if (layer.bounds) {
-                      return (
-                        <TileLayer
-                          key={layer.id}
-                          url={layer.url}
-                          attribution={layer.attribution}
-                          opacity={layer.opacity}
-                          zIndex={layer.zIndex}
-                          bounds={layer.bounds as L.LatLngBoundsExpression}
-                          className={layer.className}
-                          crossOrigin="anonymous"
-                        />
-                      );
-                    }
-                    return (
-                      <TileLayer
-                        key={layer.id}
-                        url={layer.url}
-                        attribution={layer.attribution}
-                        opacity={layer.opacity}
-                        zIndex={layer.zIndex}
-                        crossOrigin="anonymous"
-                      />
-                    );
-                  })}
-                <Marker 
-                  position={markerPos} 
-                  icon={customIcon}
-                  draggable={true}
-                  eventHandlers={{
-                    dragend: (e) => {
-                      setMarkerPos(e.target.getLatLng());
-                    }
-                  }}
-                />
-                <MapController center={center} width={width} height={height} />
-              </MapContainer>
-            </div>
-          </div>
         </div>
 
       </div>

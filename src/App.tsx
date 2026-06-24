@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { motion, AnimatePresence } from 'motion/react';
 import { get, set } from 'idb-keyval';
 import { DropzoneArea } from './components/DropzoneArea';
 import { LocationMap } from './components/LocationMap';
@@ -12,6 +13,57 @@ import { Photo } from './types';
 import { fileToDataUrl, convertToJpegDataUrl, applyMetadata, convertFormat } from './utils/exif';
 import { Images, MapPin, Download } from 'lucide-react';
 
+const LoadingScreen = () => (
+  <motion.div 
+    initial={{ opacity: 1 }}
+    exit={{ opacity: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }}
+    className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center overflow-hidden"
+  >
+    <div className="relative">
+      <motion.div
+        initial={{ y: 100, opacity: 0, skewY: 10 }}
+        animate={{ y: 0, opacity: 1, skewY: 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col items-center"
+      >
+        <motion.span 
+          initial={{ opacity: 0, letterSpacing: "1em" }}
+          animate={{ opacity: 1, letterSpacing: "0.4em" }}
+          transition={{ delay: 0.3, duration: 1 }}
+          className="text-[9px] uppercase font-bold text-brand-muted mb-4 ml-2"
+        >
+          SYSTEM INITIALIZING
+        </motion.span>
+        
+        <img 
+          src="/logo.svg" 
+          alt="GexTag Logo" 
+          className="h-[40px] md:h-[80px] object-contain select-none" 
+        />
+        
+        <div className="w-full h-[1px] bg-brand-border mt-8 relative overflow-hidden">
+          <motion.div 
+            initial={{ left: "-100%" }}
+            animate={{ left: "100%" }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            className="absolute top-0 bottom-0 w-1/3 bg-brand-accent shadow-[0_0_20px_rgba(183,0,255,0.6)]"
+          />
+        </div>
+      </motion.div>
+      
+      {/* Background Decorative Element */}
+      <motion.div 
+        animate={{ 
+          scale: [1, 1.2, 1],
+          opacity: [0.1, 0.2, 0.1]
+        }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-20 -left-20 w-64 h-64 bg-brand-accent/10 rounded-full blur-[120px] pointer-events-none"
+      />
+    </div>
+  </motion.div>
+);
+
 export default function App() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -20,28 +72,22 @@ export default function App() {
   const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [mapTab, setMapTab] = useState<'queue' | 'tagging' | 'export'>('queue');
+  const [mapTab, setMapTab] = useState<'tagging' | 'export'>('tagging');
 
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768 && mapTab === 'queue') {
-        setMapTab('tagging');
-      }
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [mapTab]);
+    // No longer need to switch from queue to tagging on resize
+  }, []);
 
   useEffect(() => {
     get<Photo[]>('gextag_queue').then((val) => {
       if (val) {
         setPhotos(val);
       }
-      setIsLoaded(true);
+      // Artificial delay for the bold loading screen experience
+      setTimeout(() => setIsLoaded(true), 2000);
     }).catch(err => {
       console.error("Failed to load queue from IndexedDB", err);
-      setIsLoaded(true);
+      setTimeout(() => setIsLoaded(true), 2000);
     });
   }, []);
 
@@ -224,11 +270,22 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-brand-bg text-white">
-      <header className="border-b border-brand-border flex flex-row items-center justify-between p-4 md:p-5 gap-4 md:gap-5 shrink-0 bg-brand-bg">
-          <div className="flex flex-col items-start w-full md:w-auto">
+      <AnimatePresence>
+        {!isLoaded && <LoadingScreen key="loader" />}
+      </AnimatePresence>
+
+      <header className="border-b border-brand-border flex flex-row items-center justify-between p-4 md:p-5 gap-4 md:gap-5 shrink-0 bg-brand-bg relative z-10">
+          <div className="flex flex-col items-start w-auto">
             <span className="text-[9px] md:text-[11px] uppercase tracking-[0.2em] text-brand-muted">Gextag v3.0</span>
-            <img src="/logo.svg" alt="GexTag Logo" className="h-[24px] sm:h-[30px] md:h-[50px] object-contain mt-0.5" />
+            <img src="/logo.svg" alt="GexTag Logo" className="h-[20px] sm:h-[30px] md:h-[50px] object-contain mt-0.5" />
           </div>
+
+          {/* Mobile Passion Credits - Opposite Logo */}
+          <div className="md:hidden flex flex-col items-end text-right">
+             <span className="text-[8px] font-bold text-white uppercase tracking-wider leading-tight">PASSION BY</span>
+             <span className="text-[7px] text-brand-muted uppercase tracking-[0.1em]">CHAOS.STUDIO.MV</span>
+          </div>
+
           <div className="hidden md:flex h-[40px] gap-8 items-center mt-6 w-auto justify-end">
             <button 
               onClick={() => setMapTab('tagging')} 
@@ -247,7 +304,7 @@ export default function App() {
 
       <main className="flex-grow flex flex-col md:flex-row overflow-hidden border-b border-brand-border">
           {/* Left Column: Upload & Queue */}
-          <section className={`${mapTab === 'queue' ? 'flex flex-grow w-full h-full' : 'hidden md:flex'} flex-col md:h-auto md:w-[320px] lg:w-[400px] border-b md:border-b-0 md:border-r border-brand-border shrink-0 overflow-hidden`}>
+          <section className={`${mapTab === 'export' ? 'hidden' : 'flex'} order-2 md:order-1 flex-col h-[40dvh] md:h-auto md:w-[320px] lg:w-[400px] border-b md:border-b-0 md:border-r border-brand-border shrink-0 overflow-hidden`}>
             <div className="p-[15px_20px] text-[10px] uppercase tracking-[0.3em] text-brand-muted border-b border-brand-border flex justify-between shrink-0 bg-brand-bg">
               <span>Batch Queue</span>
               <span className="text-white">{photos.length.toString().padStart(2, '0')} Files</span>
@@ -268,12 +325,30 @@ export default function App() {
           </section>
 
           {/* Center/Main Column: Map & Workspaces */}
-          <section className={`${mapTab !== 'queue' ? 'flex flex-col flex-grow w-full h-full' : 'hidden md:flex md:flex-col md:flex-grow'} relative bg-black shrink-0 md:shrink overflow-hidden min-h-0`}>
+          <section className="flex flex-col flex-grow w-full h-full order-1 md:order-2 relative bg-black shrink-0 md:shrink overflow-hidden min-h-0">
             <div className="h-auto md:h-[46px] px-5 py-2 md:py-0 text-[10px] uppercase tracking-[0.3em] text-brand-muted border-b border-brand-border bg-brand-bg shrink-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-0">
               <div className="flex h-[30px] md:h-full gap-4 items-center w-full md:w-auto border-b border-[#333] md:border-none pb-2 md:pb-0">
                 <span className="font-bold text-white">
-                  {mapTab === 'tagging' ? 'GEOTAGGER' : mapTab === 'export' ? 'MAP EXPORT (BETA)' : 'BATCH QUEUE'}
+                  {mapTab === 'tagging' ? 'GEOTAGGER' : 'MAP EXPORT (BETA)'}
                 </span>
+                {mapTab === 'tagging' && (
+                  <button 
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.multiple = true;
+                      input.accept = 'image/*';
+                      input.onchange = (e: any) => {
+                        const files = Array.from(e.target.files as FileList);
+                        if (files.length > 0) handleFilesAccepted(files);
+                      };
+                      input.click();
+                    }}
+                    className="md:hidden flex items-center gap-1 text-brand-accent font-bold px-2 py-1 border border-brand-accent/30 rounded text-[9px]"
+                  >
+                    + ADD IMAGES
+                  </button>
+                )}
               </div>
               {mapTab === 'tagging' && (
                 <div className="flex gap-4 items-center w-full md:w-auto justify-between md:justify-end mt-2 md:mt-0">
@@ -337,7 +412,7 @@ export default function App() {
           </section>
         </main>
 
-        <footer className="shrink-0 flex flex-col bg-brand-bg border-t border-brand-border">
+        <footer className="hidden md:flex shrink-0 flex-col bg-brand-bg border-t border-brand-border">
           {mapTab === 'tagging' && (
             <div className="min-h-[80px] p-4 md:p-[0_20px] flex flex-col md:flex-row items-center justify-between border-b border-[#111] gap-4 md:gap-0">
               <div className="w-full md:w-auto flex justify-between md:justify-start items-center shrink-0">
@@ -364,7 +439,7 @@ export default function App() {
               </div>
             </div>
           )}
-          <div className="flex justify-center items-center py-2 px-4 text-[10px] uppercase tracking-widest text-brand-muted gap-2 text-center flex-wrap">
+          <div className="hidden md:flex justify-center items-center py-2 px-4 text-[10px] uppercase tracking-widest text-brand-muted gap-2 text-center flex-wrap">
             <span>Created from passion by chaos.studio.mv</span>
             <span className="hidden sm:inline">•</span>
             <a href="mailto:chaos.studio.mv@gmail.com" className="hover:text-brand-accent transition-colors">chaos.studio.mv@gmail.com</a>
@@ -377,14 +452,6 @@ export default function App() {
 
         {/* Bottom Navigation Bar for Mobile */}
         <nav className="md:hidden shrink-0 bg-brand-bg border-t border-brand-border h-[64px] flex justify-around items-center px-4 z-50">
-          <button
-            onClick={() => setMapTab('queue')}
-            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${mapTab === 'queue' ? 'text-brand-accent font-black' : 'text-brand-muted'}`}
-          >
-            <Images size={18} className={mapTab === 'queue' ? 'scale-110 text-brand-accent' : 'text-brand-muted'} />
-            <span className="text-[9px] uppercase tracking-wider">Queue</span>
-          </button>
-          
           <button
             onClick={() => setMapTab('tagging')}
             className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${mapTab === 'tagging' ? 'text-brand-accent font-black' : 'text-brand-muted'}`}
