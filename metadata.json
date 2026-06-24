@@ -1,0 +1,8 @@
+{
+  "name": "GexTag",
+  "description": "A bulk geotagging utility to inject EXIF location metadata into photos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

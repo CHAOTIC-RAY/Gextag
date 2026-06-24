@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;500;700;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Helvetica Neue", Arial, sans-serif;
+  --color-black: #000000;
+  --color-brand-bg: #050505;
+  --color-brand-surface: #111111;
+  --color-brand-border: #222222;
+  --color-brand-muted: #555555;
+  --color-brand-accent: #b533ff;
+  --color-brand-pin: #d480ff;
+}
+
+body {
+  background-color: var(--color-brand-bg);
+  color: white;
+}
