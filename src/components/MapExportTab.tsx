@@ -141,9 +141,15 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
   const [center, setCenter] = useState({ lat: 4.1755, lng: 73.5093 }); // default Malé/Hulhumalé area
   const [markerPos, setMarkerPos] = useState({ lat: 4.1755, lng: 73.5093 });
 
-  // Floating menus expand state
-  const [isSettingsOpen, setIsSettingsOpen] = useState(true);
-  const [isLayersOpen, setIsLayersOpen] = useState(true);
+  // Floating menus expand state - starts open on desktop, closed on mobile
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLayersOpen, setIsLayersOpen] = useState(false);
+
+  useEffect(() => {
+    const isDesktop = window.innerWidth >= 768;
+    setIsSettingsOpen(isDesktop);
+    setIsLayersOpen(isDesktop);
+  }, []);
 
   useEffect(() => {
     if (location) {
@@ -204,21 +210,37 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
     setHeight(h);
   };
 
+  const moveLayer = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index + 1 : index - 1;
+    if (targetIndex < 0 || targetIndex >= exportLayers.length) return;
+    
+    const updated = [...exportLayers];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+    
+    // Assign consecutive zIndex values starting from 1
+    const reordered = updated.map((layer, idx) => ({
+      ...layer,
+      zIndex: idx + 1
+    }));
+    
+    setExportLayers(reordered);
+  };
+
   return (
     <div className="h-full w-full bg-black text-white flex flex-col overflow-hidden relative">
       {/* Workspace Area with Fixed Control Panels & Scrollable Canvas Container */}
-      <div className="flex-grow w-full h-full relative overflow-hidden flex flex-col md:flex-row">
-        
-        {/* Floating Controls Overlay (Z-index 1000 to overlay Leaflet) */}
+      <div className="flex-grow w-full h-full relative overflow-y-auto md:overflow-hidden flex flex-col md:flex-row">
         
         {/* LEFT PANEL: Canvas Settings */}
-        <div className="absolute top-4 left-4 z-[1000] w-[280px] bg-brand-surface/90 backdrop-blur-md border border-brand-border rounded shadow-2xl transition-all duration-300">
+        <div className="relative md:absolute md:top-4 md:left-4 z-[1000] w-full md:w-[280px] bg-brand-surface/95 backdrop-blur-md border-b md:border border-brand-border md:rounded shadow-2xl transition-all duration-300">
           <div 
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
             className="flex items-center justify-between p-3 border-b border-brand-border/60 cursor-pointer hover:bg-white/5 select-none"
           >
             <div className="flex items-center gap-2">
-              <Settings className="w-4 h-4 text-brand-accent" />
+              <Settings className="w-4 h-4 text-brand-accent animate-pulse" />
               <span className="text-[11px] font-black uppercase tracking-widest text-white">Canvas Config</span>
             </div>
             {isSettingsOpen ? <ChevronUp className="w-3.5 h-3.5 text-brand-muted" /> : <ChevronDown className="w-3.5 h-3.5 text-brand-muted" />}
@@ -232,27 +254,27 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
                 <div className="grid grid-cols-2 gap-1">
                   <button 
                     onClick={() => applyPreset(800, 800)}
-                    className={`text-[9px] uppercase tracking-wider py-1 border border-brand-border rounded hover:border-brand-accent hover:text-brand-accent transition-colors ${width === 800 && height === 800 ? 'border-brand-accent text-brand-accent font-bold' : 'text-brand-muted'}`}
+                    className={`text-[9px] uppercase tracking-wider py-1 border border-brand-border rounded hover:border-brand-accent hover:text-brand-accent transition-colors ${width === 800 && height === 800 ? 'border-brand-accent text-brand-accent font-bold bg-brand-accent/5' : 'text-brand-muted'}`}
                   >
                     Square (800)
                   </button>
                   <button 
                     onClick={() => applyPreset(1200, 1200)}
-                    className={`text-[9px] uppercase tracking-wider py-1 border border-brand-border rounded hover:border-brand-accent hover:text-brand-accent transition-colors ${width === 1200 && height === 1200 ? 'border-brand-accent text-brand-accent font-bold' : 'text-brand-muted'}`}
+                    className={`text-[9px] uppercase tracking-wider py-1 border border-brand-border rounded hover:border-brand-accent hover:text-brand-accent transition-colors ${width === 1200 && height === 1200 ? 'border-brand-accent text-brand-accent font-bold bg-brand-accent/5' : 'text-brand-muted'}`}
                   >
                     Hi-Res Sq (1200)
                   </button>
                   <button 
                     onClick={() => applyPreset(1920, 1080)}
-                    className={`text-[9px] uppercase tracking-wider py-1 border border-brand-border rounded hover:border-brand-accent hover:text-brand-accent transition-colors ${width === 1920 && height === 1080 ? 'border-brand-accent text-brand-accent font-bold' : 'text-brand-muted'}`}
+                    className={`text-[9px] uppercase tracking-wider py-1 border border-brand-border rounded hover:border-brand-accent hover:text-brand-accent transition-colors ${width === 1920 && height === 1080 ? 'border-brand-accent text-brand-accent font-bold bg-brand-accent/5' : 'text-brand-muted'}`}
                   >
-                    Full HD (1080p)
+                    Full HD (1080)
                   </button>
                   <button 
                     onClick={() => applyPreset(1080, 1920)}
-                    className={`text-[9px] uppercase tracking-wider py-1 border border-brand-border rounded hover:border-brand-accent hover:text-brand-accent transition-colors ${width === 1080 && height === 1920 ? 'border-brand-accent text-brand-accent font-bold' : 'text-brand-muted'}`}
+                    className={`text-[9px] uppercase tracking-wider py-1 border border-brand-border rounded hover:border-brand-accent hover:text-brand-accent transition-colors ${width === 1080 && height === 1920 ? 'border-brand-accent text-brand-accent font-bold bg-brand-accent/5' : 'text-brand-muted'}`}
                   >
-                    Vertical (1080)
+                    Vertical (1920)
                   </button>
                 </div>
               </div>
@@ -320,7 +342,7 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
         </div>
 
         {/* RIGHT PANEL: Map Layers Stack */}
-        <div className="absolute top-4 right-4 z-[1000] w-[280px] bg-brand-surface/90 backdrop-blur-md border border-brand-border rounded shadow-2xl transition-all duration-300">
+        <div className="relative md:absolute md:top-4 md:right-4 z-[1000] w-full md:w-[280px] bg-brand-surface/95 backdrop-blur-md border-b md:border border-brand-border md:rounded shadow-2xl transition-all duration-300">
           <div 
             onClick={() => setIsLayersOpen(!isLayersOpen)}
             className="flex items-center justify-between p-3 border-b border-brand-border/60 cursor-pointer hover:bg-white/5 select-none"
@@ -339,62 +361,89 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
                 <div className="group relative">
                   <HelpCircle className="w-3.5 h-3.5 text-brand-muted hover:text-white cursor-pointer" />
                   <span className="absolute right-0 bottom-full mb-2 w-48 bg-black border border-brand-border text-[8px] text-brand-muted p-2 uppercase tracking-wider rounded shadow-2xl hidden group-hover:block z-50 normal-case leading-relaxed">
-                    Toggle multiple layers & slide opacities to blend. E.g., overlay OSM lines on Esri Sat.
+                    Toggle multiple layers, slide opacities to blend, and use arrows to rearrange the draw order.
                   </span>
                 </div>
               </div>
 
+              {/* Stack is rendered in reverse order so the top-most layer is visually at the top of the list! */}
               <div className="space-y-2">
-                {exportLayers.map((layer, index) => (
-                  <div key={layer.id} className="p-2 bg-black/40 border border-brand-border/30 hover:border-brand-border/60 transition-colors rounded-sm">
-                    <div className="flex items-center justify-between">
-                      <label className="flex items-center gap-2 cursor-pointer group text-[10px] uppercase tracking-wider text-white">
-                        <input 
-                          type="checkbox" 
-                          checked={layer.checked} 
-                          onChange={(e) => {
-                            const newLayers = [...exportLayers];
-                            newLayers[index].checked = e.target.checked;
-                            setExportLayers(newLayers);
-                          }}
-                          className="accent-brand-accent h-3.5 w-3.5 cursor-pointer rounded-sm"
-                        />
-                        <span className={layer.checked ? 'text-brand-accent font-black' : 'text-brand-muted group-hover:text-white transition-colors'}>
-                          {layer.name}
-                        </span>
-                      </label>
-                    </div>
+                {[...exportLayers].reverse().map((layer, revIdx) => {
+                  const index = exportLayers.length - 1 - revIdx;
+                  return (
+                    <div key={layer.id} className="p-2 bg-black/40 border border-brand-border/30 hover:border-brand-border/60 transition-colors rounded-sm">
+                      <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 cursor-pointer group text-[10px] uppercase tracking-wider text-white">
+                          <input 
+                            type="checkbox" 
+                            checked={layer.checked} 
+                            onChange={(e) => {
+                              const newLayers = [...exportLayers];
+                              newLayers[index].checked = e.target.checked;
+                              setExportLayers(newLayers);
+                            }}
+                            className="accent-brand-accent h-3.5 w-3.5 cursor-pointer rounded-sm"
+                          />
+                          <span className={layer.checked ? 'text-brand-accent font-black' : 'text-brand-muted group-hover:text-white transition-colors'}>
+                            {layer.name}
+                          </span>
+                        </label>
 
-                    {layer.checked && (
-                      <div className="flex items-center gap-2 mt-2 pl-5">
-                        <span className="text-[8px] uppercase tracking-wider text-brand-muted shrink-0 w-[42px]">Opacity:</span>
-                        <input 
-                          type="range" 
-                          min="0" 
-                          max="1" 
-                          step="0.05"
-                          value={layer.opacity} 
-                          onChange={(e) => {
-                            const newLayers = [...exportLayers];
-                            newLayers[index].opacity = parseFloat(e.target.value);
-                            setExportLayers(newLayers);
-                          }}
-                          className="flex-grow accent-brand-accent h-1 bg-brand-border/40 rounded-lg cursor-pointer appearance-none"
-                        />
-                        <span className="text-[9px] font-mono text-white w-[25px] text-right shrink-0">
-                          {Math.round(layer.opacity * 100)}%
-                        </span>
+                        {/* Rearrange controls */}
+                        <div className="flex items-center gap-1 shrink-0 ml-2">
+                          <button 
+                            onClick={() => moveLayer(index, 'down')}
+                            disabled={index === 0}
+                            className="p-1 hover:text-brand-accent text-brand-muted disabled:opacity-20 disabled:hover:text-brand-muted transition-colors cursor-pointer"
+                            title="Move Down (towards bottom of stack)"
+                          >
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="text-[8px] font-mono text-brand-muted min-w-[12px] text-center" title="Stack Order">
+                            {index + 1}
+                          </span>
+                          <button 
+                            onClick={() => moveLayer(index, 'up')}
+                            disabled={index === exportLayers.length - 1}
+                            className="p-1 hover:text-brand-accent text-brand-muted disabled:opacity-20 disabled:hover:text-brand-muted transition-colors cursor-pointer"
+                            title="Move Up (towards top of stack)"
+                          >
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {layer.checked && (
+                        <div className="flex items-center gap-2 mt-2 pl-5">
+                          <span className="text-[8px] uppercase tracking-wider text-brand-muted shrink-0 w-[42px]">Opacity:</span>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="1" 
+                            step="0.01"
+                            value={layer.opacity} 
+                            onChange={(e) => {
+                              const newLayers = [...exportLayers];
+                              newLayers[index].opacity = parseFloat(e.target.value);
+                              setExportLayers(newLayers);
+                            }}
+                            className="flex-grow accent-brand-accent h-1 bg-brand-border/40 rounded-lg cursor-pointer appearance-none"
+                          />
+                          <span className="text-[9px] font-mono text-white w-[25px] text-right shrink-0">
+                            {Math.round(layer.opacity * 100)}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
         </div>
 
         {/* CANVAS PREVIEW AREA (The interactive workspace) */}
-        <div className="flex-grow overflow-auto p-12 bg-[#090909] flex items-center justify-center relative z-0 h-full min-h-[500px]">
+        <div className="flex-grow overflow-auto p-4 md:p-12 bg-[#090909] flex items-center justify-center relative z-0 min-h-[400px]">
           {/* Scrollable container mirroring the user-specified export resolution */}
           <div className="shadow-2xl border border-brand-border/60 overflow-hidden bg-black shrink-0 relative transition-all duration-300">
             <div ref={mapRef} style={{ width, height, position: 'relative' }}>
@@ -405,15 +454,14 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
                 style={{ height: '100%', width: '100%', background: '#000' }}
               >
                 {/* Dynamically build stacked TileLayers based on blend configuration */}
-                {/* Notice the key is structured dynamically to force Leaflet to recreate layers and update opacities dynamically! */}
+                {/* Fixed key to ensure buttery-smooth continuous hardware-accelerated opacity sliding! */}
                 {exportLayers
                   .filter(layer => layer.checked)
                   .map(layer => {
-                    const dynamicKey = `${layer.id}-${layer.opacity}-${layer.checked}`;
                     if (layer.bounds) {
                       return (
                         <TileLayer
-                          key={dynamicKey}
+                          key={layer.id}
                           url={layer.url}
                           attribution={layer.attribution}
                           opacity={layer.opacity}
@@ -426,7 +474,7 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
                     }
                     return (
                       <TileLayer
-                        key={dynamicKey}
+                        key={layer.id}
                         url={layer.url}
                         attribution={layer.attribution}
                         opacity={layer.opacity}
