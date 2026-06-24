@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap, LayersControl, LayerGroup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { MapPin, Search } from 'lucide-react';
+import { decode as decodePlusCode } from 'open-location-code';
 
 // Fix for default marker icon in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -142,9 +143,52 @@ export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect, ph
     }
   };
 
+  const parseGoogleMapsLink = (url: string) => {
+    try {
+      const maybeCode = url.trim().toUpperCase();
+      if (/^[23456789CFCGHJMPQRVWX]{4}[23456789CFCGHJMPQRVWX]{2,4}\+[23456789CFCGHJMPQRVWX]{2,3}$/.test(maybeCode)) {
+        const decoded = decodePlusCode(maybeCode);
+        if (decoded) {
+          return { lat: decoded.latitudeCenter, lng: decoded.longitudeCenter };
+        }
+      }
+    } catch (e) {}
+
+    // Matches !3d(lat)!4d(lng) first (actual pin location in long links)
+    let match = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+    if (match) {
+      return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+    }
+    // Matches /@lat,lng
+    match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (match) {
+      return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+    }
+    // Matches ?q=lat,lng or &q=lat,lng or ?ll=lat,lng
+    match = url.match(/[?&](q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (match) {
+      return { lat: parseFloat(match[2]), lng: parseFloat(match[3]) };
+    }
+    // Matches raw lat,lng pasted
+    match = url.match(/^(-?\d+\.\d+)(?:,\s*|\s+)(-?\d+\.\d+)$/);
+    if (match) {
+      return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+    }
+    return null;
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearchQuery(val);
+
+    const googleLoc = parseGoogleMapsLink(val);
+    if (googleLoc) {
+      setShowSuggestions(false);
+      onLocationSelect(googleLoc);
+      setMapCenter(googleLoc);
+      return;
+    }
+
     setShowSuggestions(true);
     
     if (debounceRef.current) {
@@ -170,6 +214,14 @@ export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect, ph
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchQuery) return;
+
+    const googleLoc = parseGoogleMapsLink(searchQuery);
+    if (googleLoc) {
+      setShowSuggestions(false);
+      onLocationSelect(googleLoc);
+      setMapCenter(googleLoc);
+      return;
+    }
     
     setShowSuggestions(false);
     
@@ -255,8 +307,34 @@ export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect, ph
           style={{ height: '100%', width: '100%', position: 'absolute', inset: 0 }}
         >
           <TileLayer
+            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={22}
+            maxNativeZoom={17}
+            zIndex={1}
+          />
+          <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            minZoom={18}
+            maxZoom={22}
+            maxNativeZoom={19}
+            zIndex={2}
+          />
+          <TileLayer
+            url="https://tiles.arcgis.com/tiles/TGjun5cqf5Jwp2Ad/arcgis/rest/services/HULHUMALE_IMAGERY_24TH_MARCH_2024/MapServer/tile/{z}/{y}/{x}"
+            attribution='Hulhumalé Imagery &copy; HDC'
+            maxNativeZoom={20}
+            maxZoom={22}
+            bounds={[[4.1, 73.4], [4.3, 73.6]]}
+            errorTileUrl="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            zIndex={3}
+          />
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={18}
+            errorTileUrl="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            zIndex={4}
           />
           {mapCenter && <MapController center={mapCenter} />}
           <LocationMarker location={location} onLocationSelect={handleMapClick} />
