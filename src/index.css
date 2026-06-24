@@ -41,3 +41,23 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--color-brand-border) var(--color-brand-bg);
 }
+
+/* Blend out black borders/triangles in Hulhumale satellite tiles */
+.hulhumale-tiles {
+  mix-blend-mode: lighten !important;
+  isolation: auto !important;
+}
+
+.hulhumale-tiles img {
+  mix-blend-mode: lighten !important;
+}
+
+/* Ensure leaflet tile pane and layers don't isolate blend mode */
+.leaflet-tile-pane {
+  isolation: auto !important;
+}
+
+.leaflet-layer {
+  isolation: auto !important;
+}
+

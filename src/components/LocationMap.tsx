@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap, LayersControl, LayerGroup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { MapPin, Search } from 'lucide-react';
+import { MapPin, Search, Layers } from 'lucide-react';
 import { decode as decodePlusCode } from 'open-location-code';
 
 // Fix for default marker icon in react-leaflet
@@ -84,6 +84,8 @@ export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect, ph
   const [userLoc, setUserLoc] = useState<{lat: number, lng: number} | null>(null);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeBaseMap, setActiveBaseMap] = useState<'google-hybrid' | 'esri-sat' | 'osm'>('google-hybrid');
+  const [showHulhumale, setShowHulhumale] = useState(true);
   const debounceRef = useRef<any>(null);
 
   useEffect(() => {
@@ -305,6 +307,65 @@ export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect, ph
       </div>
 
       <div className="flex-grow w-full relative z-0 bg-black min-h-[400px]">
+        {/* Floating Layer Control Panel */}
+        <div className="absolute top-4 right-4 z-[1000] bg-brand-surface/90 backdrop-blur-md p-3 border border-brand-border w-[200px] rounded shadow-xl">
+          <div className="flex items-center gap-2 mb-2 border-b border-brand-border pb-1.5">
+            <Layers className="w-3.5 h-3.5 text-brand-accent" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-white">Map Layers</span>
+          </div>
+          
+          <div className="space-y-2">
+            <div>
+              <span className="block text-[8px] font-bold text-brand-muted uppercase tracking-wider mb-1">Base Map</span>
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-2 cursor-pointer group text-[9px] uppercase tracking-wider text-white">
+                  <input 
+                    type="radio" 
+                    name="geotagger-basemap" 
+                    checked={activeBaseMap === 'google-hybrid'} 
+                    onChange={() => setActiveBaseMap('google-hybrid')}
+                    className="accent-brand-accent h-3.5 w-3.5 cursor-pointer"
+                  />
+                  <span className={activeBaseMap === 'google-hybrid' ? 'text-brand-accent font-bold' : 'text-brand-muted group-hover:text-white transition-colors'}>Google Hybrid</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer group text-[9px] uppercase tracking-wider text-white">
+                  <input 
+                    type="radio" 
+                    name="geotagger-basemap" 
+                    checked={activeBaseMap === 'esri-sat'} 
+                    onChange={() => setActiveBaseMap('esri-sat')}
+                    className="accent-brand-accent h-3.5 w-3.5 cursor-pointer"
+                  />
+                  <span className={activeBaseMap === 'esri-sat' ? 'text-brand-accent font-bold' : 'text-brand-muted group-hover:text-white transition-colors'}>Esri Satellite</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer group text-[9px] uppercase tracking-wider text-white">
+                  <input 
+                    type="radio" 
+                    name="geotagger-basemap" 
+                    checked={activeBaseMap === 'osm'} 
+                    onChange={() => setActiveBaseMap('osm')}
+                    className="accent-brand-accent h-3.5 w-3.5 cursor-pointer"
+                  />
+                  <span className={activeBaseMap === 'osm' ? 'text-brand-accent font-bold' : 'text-brand-muted group-hover:text-white transition-colors'}>OpenStreetMap</span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="border-t border-brand-border pt-1.5 mt-1.5">
+              <span className="block text-[8px] font-bold text-brand-muted uppercase tracking-wider mb-1">Overlay</span>
+              <label className="flex items-center gap-2 cursor-pointer group text-[9px] uppercase tracking-wider text-white">
+                <input 
+                  type="checkbox" 
+                  checked={showHulhumale} 
+                  onChange={(e) => setShowHulhumale(e.target.checked)}
+                  className="accent-brand-accent h-3.5 w-3.5 rounded cursor-pointer"
+                />
+                <span className={showHulhumale ? 'text-brand-accent font-bold' : 'text-brand-muted group-hover:text-white transition-colors'}>Hulhumalé 24</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
         <MapContainer 
           center={location || [34.0522, -118.2437]} 
           zoom={location ? 13 : 2} 
@@ -313,36 +374,49 @@ export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect, ph
           maxBoundsViscosity={1.0}
           style={{ height: '100%', width: '100%', position: 'absolute', inset: 0 }}
         >
-          <TileLayer
-            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={22}
-            maxNativeZoom={17}
-            zIndex={1}
-          />
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            minZoom={18}
-            maxZoom={22}
-            maxNativeZoom={19}
-            zIndex={2}
-          />
-          <TileLayer
-            url="https://tiles.arcgis.com/tiles/TGjun5cqf5Jwp2Ad/arcgis/rest/services/HULHUMALE_IMAGERY_24TH_MARCH_2024/MapServer/tile/{z}/{y}/{x}"
-            attribution='Hulhumalé Imagery &copy; HDC'
-            maxNativeZoom={20}
-            maxZoom={22}
-            bounds={[[4.1, 73.4], [4.3, 73.6]]}
-            errorTileUrl="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-            zIndex={3}
-          />
-          <TileLayer
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={18}
-            errorTileUrl="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-            zIndex={4}
-          />
+          {activeBaseMap === 'google-hybrid' && (
+            <TileLayer
+              key="google-hybrid"
+              attribution="&copy; Google"
+              url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+              maxZoom={22}
+              maxNativeZoom={20}
+              zIndex={1}
+            />
+          )}
+          {activeBaseMap === 'esri-sat' && (
+            <TileLayer
+              key="esri-sat"
+              attribution="Tiles &copy; Esri &mdash; Source: Esri"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={22}
+              maxNativeZoom={17}
+              zIndex={1}
+            />
+          )}
+          {activeBaseMap === 'osm' && (
+            <TileLayer
+              key="osm"
+              attribution="&copy; OpenStreetMap contributors"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={22}
+              maxNativeZoom={19}
+              zIndex={1}
+            />
+          )}
+          {showHulhumale && (
+            <TileLayer
+              key="hulhumale-overlay"
+              url="https://tiles.arcgis.com/tiles/TGjun5cqf5Jwp2Ad/arcgis/rest/services/HULHUMALE_IMAGERY_24TH_MARCH_2024/MapServer/tile/{z}/{y}/{x}"
+              attribution='Hulhumalé Imagery &copy; HDC'
+              maxNativeZoom={20}
+              maxZoom={22}
+              bounds={[[4.18, 73.515], [4.24, 73.56]]}
+              errorTileUrl="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+              zIndex={2}
+              className="hulhumale-tiles"
+            />
+          )}
           {mapCenter && <MapController center={mapCenter} />}
           <LocationMarker location={location} onLocationSelect={handleMapClick} />
           {photos.map(p => <PhotoMarker key={p.id} photo={p} onMove={onPhotoMove!} />)}
