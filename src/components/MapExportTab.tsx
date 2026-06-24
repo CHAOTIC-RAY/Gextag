@@ -15,6 +15,7 @@ interface MapLayer {
   zIndex: number;
   maxZoom: number;
   maxNativeZoom: number;
+  minZoom?: number;
   bounds?: [[number, number], [number, number]];
   className?: string;
 }
@@ -64,7 +65,8 @@ const INITIAL_LAYERS: MapLayer[] = [
     bounds: [[4.18, 73.515], [4.24, 73.56]],
     className: 'hulhumale-tiles',
     maxZoom: 22,
-    maxNativeZoom: 20
+    maxNativeZoom: 20,
+    minZoom: 16
   },
   {
     id: 'carto-dark',
@@ -257,6 +259,9 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
                           attribution={layer.attribution}
                           opacity={layer.opacity}
                           zIndex={layer.zIndex}
+                          minZoom={layer.minZoom}
+                          maxNativeZoom={layer.maxNativeZoom}
+                          maxZoom={layer.maxZoom}
                           bounds={layer.bounds as L.LatLngBoundsExpression}
                           className={layer.className}
                           crossOrigin="anonymous"
@@ -270,6 +275,9 @@ export const MapExportTab = ({ location }: { location: { lat: number, lng: numbe
                         attribution={layer.attribution}
                         opacity={layer.opacity}
                         zIndex={layer.zIndex}
+                        minZoom={layer.minZoom}
+                        maxNativeZoom={layer.maxNativeZoom}
+                        maxZoom={layer.maxZoom}
                         crossOrigin="anonymous"
                       />
                     );

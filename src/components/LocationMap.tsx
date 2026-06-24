@@ -411,6 +411,7 @@ export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect, ph
               attribution='Hulhumalé Imagery &copy; HDC'
               maxNativeZoom={20}
               maxZoom={22}
+              minZoom={16}
               bounds={[[4.18, 73.515], [4.24, 73.56]]}
               errorTileUrl="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
               zIndex={2}

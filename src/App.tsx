@@ -75,10 +75,6 @@ export default function App() {
   const [mapTab, setMapTab] = useState<'tagging' | 'export'>('tagging');
 
   useEffect(() => {
-    // No longer need to switch from queue to tagging on resize
-  }, []);
-
-  useEffect(() => {
     get<Photo[]>('gextag_queue').then((val) => {
       if (val) {
         setPhotos(val);
@@ -412,10 +408,10 @@ export default function App() {
           </section>
         </main>
 
-        <footer className="hidden md:flex shrink-0 flex-col bg-brand-bg border-t border-brand-border">
+        <footer className={`shrink-0 flex flex-col bg-brand-bg border-t border-brand-border ${mapTab === 'tagging' ? 'flex' : 'hidden md:flex'}`}>
           {mapTab === 'tagging' && (
-            <div className="min-h-[80px] p-4 md:p-[0_20px] flex flex-col md:flex-row items-center justify-between border-b border-[#111] gap-4 md:gap-0">
-              <div className="w-full md:w-auto flex justify-between md:justify-start items-center shrink-0">
+            <div className="min-h-[60px] md:min-h-[80px] p-2 md:p-[0_20px] flex flex-col md:flex-row items-center justify-between border-b border-[#111] gap-2 md:gap-0">
+              <div className="hidden md:flex w-full md:w-auto justify-between md:justify-start items-center shrink-0">
                 <span className="text-brand-muted text-[12px] mr-5 uppercase tracking-widest font-bold hidden sm:inline">
                   Selected: {selectedLocation ? `${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}` : 'None'}
                 </span>
@@ -423,17 +419,17 @@ export default function App() {
                   Clear All
                 </button>
               </div>
-              <div className="flex gap-2 w-full md:w-auto overflow-x-auto scrollbar-none py-1 flex-nowrap justify-start md:justify-end shrink-0">
+              <div className="flex gap-2 w-full md:w-auto overflow-x-auto scrollbar-none py-1 flex-nowrap justify-center md:justify-end shrink-0">
                  <button onClick={() => {
                     setEditingPhotoId(null);
                     setIsBatchModalOpen(true);
-                  }} className="shrink-0 bg-transparent text-white border border-[#333] p-[10px_20px] md:p-[12px_30px] font-black uppercase text-[11px] md:text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-surface transition-colors whitespace-nowrap">
+                  }} className="shrink-0 bg-transparent text-white border border-[#333] p-[8px_15px] md:p-[12px_30px] font-black uppercase text-[10px] md:text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-surface transition-colors whitespace-nowrap">
                   Batch Edit
                 </button>
-                <button onClick={handleTagAll} className="shrink-0 bg-brand-surface text-brand-accent border border-brand-accent p-[10px_20px] md:p-[12px_30px] font-black uppercase text-[11px] md:text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-accent hover:text-black transition-colors whitespace-nowrap">
+                <button onClick={handleTagAll} className="shrink-0 bg-brand-surface text-brand-accent border border-brand-accent p-[8px_15px] md:p-[12px_30px] font-black uppercase text-[10px] md:text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-accent hover:text-black transition-colors whitespace-nowrap">
                   Tag Queue
                 </button>
-                <button disabled={isProcessing} onClick={() => setIsExportModalOpen(true)} className="shrink-0 bg-white text-black border-none p-[10px_20px] md:p-[12px_30px] font-black uppercase text-[11px] md:text-[14px] tracking-[0.1em] cursor-pointer hover:bg-gray-200 transition-colors disabled:opacity-50 whitespace-nowrap">
+                <button disabled={isProcessing} onClick={() => setIsExportModalOpen(true)} className="shrink-0 bg-white text-black border-none p-[8px_15px] md:p-[12px_30px] font-black uppercase text-[10px] md:text-[14px] tracking-[0.1em] cursor-pointer hover:bg-gray-200 transition-colors disabled:opacity-50 whitespace-nowrap">
                   {isProcessing ? "Wait..." : `Export (${photos.length.toString().padStart(2, '0')})`}
                 </button>
               </div>
