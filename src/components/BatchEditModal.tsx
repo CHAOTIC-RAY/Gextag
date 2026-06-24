@@ -31,6 +31,20 @@ export const BatchEditModal: React.FC<BatchEditModalProps> = ({
   const [copyright, setCopyright] = useState('');
   const [datetime, setDatetime] = useState('');
 
+  const handleKeywordsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    if (val.endsWith('  ')) {
+      val = val.substring(0, val.length - 2) + ', ';
+    }
+    setKeywordsInput(val);
+  };
+
+  const handleSetNow = () => {
+    const now = new Date();
+    const formatted = `${now.getFullYear()}:${String(now.getMonth()+1).padStart(2, '0')}:${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    setDatetime(formatted);
+  };
+
   useEffect(() => {
     if (isOpen) {
       setKeywordsInput(initialData?.keywords?.join(', ') || '');
@@ -117,7 +131,10 @@ export const BatchEditModal: React.FC<BatchEditModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Date Time Original</label>
+              <div className="flex justify-between items-end mb-2">
+                <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em]">Date Time Original</label>
+                <button onClick={handleSetNow} className="text-[10px] text-brand-accent uppercase tracking-[0.1em] hover:text-white font-bold transition-colors">Set to Now</button>
+              </div>
               <input 
                 type="text" 
                 value={datetime}
@@ -132,11 +149,11 @@ export const BatchEditModal: React.FC<BatchEditModalProps> = ({
               <input 
                 type="text" 
                 value={keywordsInput}
-                onChange={(e) => setKeywordsInput(e.target.value)}
+                onChange={handleKeywordsChange}
                 placeholder="TAG1, TAG2..."
                 className="w-full px-4 py-3 bg-black border border-brand-border text-white focus:outline-none focus:border-brand-accent transition-colors font-mono text-sm"
               />
-              <p className="text-[10px] text-brand-muted mt-2 uppercase tracking-widest">Separate with commas.</p>
+              <p className="text-[10px] text-brand-muted mt-2 uppercase tracking-widest">Separate with commas. Double space auto-inserts comma.</p>
             </div>
             
             <div>

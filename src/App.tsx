@@ -1,19 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { get, set } from 'idb-keyval';
 import { DropzoneArea } from './components/DropzoneArea';
 import { LocationMap } from './components/LocationMap';
 import { PhotoList } from './components/PhotoList';
 import { BatchEditModal } from './components/BatchEditModal';
+import { ExportModal } from './components/ExportModal';
 import { Photo } from './types';
-import { fileToDataUrl, convertToJpegDataUrl, applyMetadata } from './utils/exif';
+import { fileToDataUrl, convertToJpegDataUrl, applyMetadata, convertFormat } from './utils/exif';
 
 export default function App() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<{lat: number, lng: number} | null>(null);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    get<Photo[]>('gextag_queue').then((val) => {
+      if (val) {
+        setPhotos(val);
+      }
+      setIsLoaded(true);
+    }).catch(err => {
+      console.error("Failed to load queue from IndexedDB", err);
+      setIsLoaded(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      set('gextag_queue', photos).catch(err => console.error("Failed to save queue", err));
+    }
+  }, [photos, isLoaded]);
 
   const [savedLocations, setSavedLocations] = useState<Array<{id: string, name: string, lat: number, lng: number}>>(() => {
     try {
@@ -103,13 +125,14 @@ export default function App() {
     }
   };
 
-  const handleDownloadZip = async () => {
+  const handleDownloadZip = async (format: 'jpg' | 'png' | 'webp', baseName: string, suffix: string) => {
     if (photos.length === 0) return;
     setIsProcessing(true);
     try {
       const zip = new JSZip();
-      for (const photo of photos) {
-        const finalDataUrl = applyMetadata(
+      for (let i = 0; i < photos.length; i++) {
+        const photo = photos[i];
+        const metadataDataUrl = applyMetadata(
           photo.dataUrl, 
           photo.lat, 
           photo.lng, 
@@ -119,8 +142,20 @@ export default function App() {
           photo.copyright,
           photo.datetime
         );
-        const base64Data = finalDataUrl.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
-        zip.file(photo.name, base64Data, { base64: true });
+        
+        let finalDataUrl = metadataDataUrl;
+        if (format !== 'jpg') {
+          finalDataUrl = await convertFormat(metadataDataUrl, format);
+        }
+        
+        const base64Data = finalDataUrl.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, "");
+        const ext = format === 'jpg' ? 'jpg' : format;
+        
+        let originalNameWithoutExt = photo.name.replace(/\.[^/.]+$/, "");
+        let newNameWithoutExt = baseName.trim() ? `${baseName.trim()}_${String(i + 1).padStart(3, '0')}` : originalNameWithoutExt;
+        
+        const finalName = `${newNameWithoutExt}${suffix}.${ext}`;
+        zip.file(finalName, base64Data, { base64: true });
       }
       const content = await zip.generateAsync({ type: "blob" });
       saveAs(content, "geotagged_photos.zip");
@@ -132,14 +167,16 @@ export default function App() {
     }
   };
 
+  const handlePhotoMove = (id: string, lat: number, lng: number) => {
+    setPhotos(prev => prev.map(p => p.id === id ? { ...p, lat, lng } : p));
+  };
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-brand-bg text-white">
       <header className="h-[120px] border-b border-brand-border flex items-end p-5 gap-5 shrink-0">
           <div className="flex flex-col">
             <span className="text-[11px] uppercase tracking-[0.2em] text-brand-muted mb-2">Gextag v3.0</span>
-            <h1 className="text-[60px] sm:text-[80px] md:text-[110px] leading-[0.8] font-black tracking-[-0.05em] uppercase m-0 text-brand-accent">
-              GEXTAG
-            </h1>
+            <img src="/logo.svg" alt="GexTag Logo" className="h-[40px] sm:h-[50px] md:h-[60px] object-contain" />
           </div>
         </header>
 
@@ -200,7 +237,7 @@ export default function App() {
               </div>
             </div>
             <div className="flex-grow relative z-0 flex flex-col">
-               <LocationMap location={selectedLocation} onLocationSelect={setSelectedLocation} />
+               <LocationMap location={selectedLocation} onLocationSelect={setSelectedLocation} photos={photos} onPhotoMove={handlePhotoMove} />
             </div>
           </section>
         </main>
@@ -224,11 +261,18 @@ export default function App() {
             <button onClick={handleTagAll} className="bg-brand-surface text-brand-accent border border-brand-accent p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-accent hover:text-black transition-colors hidden sm:block">
               Tag Queue
             </button>
-            <button disabled={isProcessing} onClick={handleDownloadZip} className="bg-white text-black border-none p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-gray-200 transition-colors disabled:opacity-50">
+            <button disabled={isProcessing} onClick={() => setIsExportModalOpen(true)} className="bg-white text-black border-none p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-gray-200 transition-colors disabled:opacity-50">
               {isProcessing ? "Processing..." : `Export Batch (${photos.length.toString().padStart(2, '0')})`}
             </button>
           </div>
         </footer>
+
+        <ExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          onExport={handleDownloadZip}
+          count={photos.length}
+        />
 
         <BatchEditModal 
           isOpen={isBatchModalOpen}

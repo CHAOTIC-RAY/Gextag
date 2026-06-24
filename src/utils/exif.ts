@@ -109,3 +109,33 @@ export const convertToJpegDataUrl = (dataUrl: string): Promise<string> => {
         img.src = dataUrl;
     });
 };
+
+export const convertFormat = (dataUrl: string, format: 'jpg' | 'png' | 'webp'): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        if (format === 'jpg' && dataUrl.startsWith('data:image/jpeg')) {
+            resolve(dataUrl);
+            return;
+        }
+        const mimeType = format === 'jpg' ? 'image/jpeg' : `image/${format}`;
+        if (dataUrl.startsWith(`data:${mimeType}`)) {
+            resolve(dataUrl);
+            return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.drawImage(img, 0, 0);
+                resolve(canvas.toDataURL(mimeType, 0.95));
+            } else {
+                reject(new Error("Could not get canvas context"));
+            }
+        };
+        img.onerror = reject;
+        img.src = dataUrl;
+    });
+};

@@ -15,7 +15,40 @@ L.Icon.Default.mergeOptions({
 interface MapProps {
   location: { lat: number; lng: number } | null;
   onLocationSelect: (loc: { lat: number; lng: number }) => void;
+  photos?: any[];
+  onPhotoMove?: (id: string, lat: number, lng: number) => void;
 }
+
+interface PhotoMarkerProps {
+  photo: any;
+  onMove: (id: string, lat: number, lng: number) => void;
+}
+
+const PhotoMarker: React.FC<PhotoMarkerProps> = ({ photo, onMove }) => {
+  if (photo.lat === null || photo.lng === null) return null;
+  
+  const icon = L.divIcon({
+    className: 'custom-photo-marker',
+    html: `<div style="width: 40px; height: 40px; border: 2px solid var(--color-brand-pin, #d480ff); border-radius: 4px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.5); background: #000;"><img src="${photo.dataUrl}" style="width: 100%; height: 100%; object-fit: cover;" /></div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+  });
+
+  return (
+    <Marker 
+      position={{ lat: photo.lat, lng: photo.lng }} 
+      icon={icon}
+      draggable={true}
+      eventHandlers={{
+        dragend: (e) => {
+          const marker = e.target;
+          const position = marker.getLatLng();
+          if (onMove) onMove(photo.id, position.lat, position.lng);
+        }
+      }}
+    />
+  );
+};
 
 const LocationMarker = ({ location, onLocationSelect }: MapProps) => {
   useMapEvents({
@@ -37,7 +70,7 @@ function MapController({ center }: { center: {lat: number, lng: number} }) {
   return null;
 }
 
-export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect }) => {
+export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect, photos = [], onPhotoMove }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null);
   const [userLoc, setUserLoc] = useState<{lat: number, lng: number} | null>(null);
@@ -54,13 +87,15 @@ export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect }) 
   }, [location]);
 
   useEffect(() => {
+    let locSet = false;
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const loc = { lat: position.coords.latitude, lng: position.coords.longitude };
           setUserLoc(loc);
-          if (!location && !mapCenter) {
+          if (!location && !mapCenter && !locSet) {
             setMapCenter(loc);
+            locSet = true;
           }
         },
         (error) => {
@@ -68,6 +103,20 @@ export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect }) 
         }
       );
     }
+
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.latitude && data.longitude) {
+           const loc = { lat: data.latitude, lng: data.longitude };
+           if (!userLoc) setUserLoc(loc);
+           if (!location && !mapCenter && !locSet) {
+              setMapCenter(loc);
+              locSet = true;
+           }
+        }
+      })
+      .catch(err => console.warn("IP Geolocation failed", err));
   }, []);
   
   const fetchSuggestions = async (query: string) => {
@@ -211,6 +260,7 @@ export const LocationMap: React.FC<MapProps> = ({ location, onLocationSelect }) 
           />
           {mapCenter && <MapController center={mapCenter} />}
           <LocationMarker location={location} onLocationSelect={handleMapClick} />
+          {photos.map(p => <PhotoMarker key={p.id} photo={p} onMove={onPhotoMove!} />)}
         </MapContainer>
       </div>
     </div>
