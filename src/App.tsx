@@ -242,28 +242,39 @@ export default function App() {
           </section>
         </main>
 
-        <footer className="h-[80px] shrink-0 p-[0_20px] flex items-center justify-between bg-brand-bg">
-          <div>
-            <span className="text-brand-muted text-[12px] mr-5 uppercase tracking-widest font-bold hidden sm:inline">
-              Selected: {selectedLocation ? `${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}` : 'None'}
-            </span>
-            <button onClick={handleReset} className="bg-transparent text-white border border-[#333] p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-surface hover:text-brand-pin transition-colors">
-              Clear All
-            </button>
+        <footer className="shrink-0 flex flex-col bg-brand-bg border-t border-brand-border">
+          <div className="h-[80px] p-[0_20px] flex items-center justify-between border-b border-[#111]">
+            <div>
+              <span className="text-brand-muted text-[12px] mr-5 uppercase tracking-widest font-bold hidden sm:inline">
+                Selected: {selectedLocation ? `${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}` : 'None'}
+              </span>
+              <button onClick={handleReset} className="bg-transparent text-white border border-[#333] p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-surface hover:text-brand-pin transition-colors">
+                Clear All
+              </button>
+            </div>
+            <div className="flex gap-4">
+               <button onClick={() => {
+                  setEditingPhotoId(null);
+                  setIsBatchModalOpen(true);
+                }} className="bg-transparent text-white border border-[#333] p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-surface transition-colors hidden md:block">
+                Batch Edit
+              </button>
+              <button onClick={handleTagAll} className="bg-brand-surface text-brand-accent border border-brand-accent p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-accent hover:text-black transition-colors hidden sm:block">
+                Tag Queue
+              </button>
+              <button disabled={isProcessing} onClick={() => setIsExportModalOpen(true)} className="bg-white text-black border-none p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-gray-200 transition-colors disabled:opacity-50">
+                {isProcessing ? "Processing..." : `Export Batch (${photos.length.toString().padStart(2, '0')})`}
+              </button>
+            </div>
           </div>
-          <div className="flex gap-4">
-             <button onClick={() => {
-                setEditingPhotoId(null);
-                setIsBatchModalOpen(true);
-              }} className="bg-transparent text-white border border-[#333] p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-surface transition-colors hidden md:block">
-              Batch Edit
-            </button>
-            <button onClick={handleTagAll} className="bg-brand-surface text-brand-accent border border-brand-accent p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-brand-accent hover:text-black transition-colors hidden sm:block">
-              Tag Queue
-            </button>
-            <button disabled={isProcessing} onClick={() => setIsExportModalOpen(true)} className="bg-white text-black border-none p-[12px_30px] font-black uppercase text-[14px] tracking-[0.1em] cursor-pointer hover:bg-gray-200 transition-colors disabled:opacity-50">
-              {isProcessing ? "Processing..." : `Export Batch (${photos.length.toString().padStart(2, '0')})`}
-            </button>
+          <div className="flex justify-center items-center py-2 px-4 text-[10px] uppercase tracking-widest text-brand-muted gap-2 text-center flex-wrap">
+            <span>Created from passion by choasstudio.mv</span>
+            <span className="hidden sm:inline">•</span>
+            <a href="mailto:chaos.studio.mv@gmail.com" className="hover:text-brand-accent transition-colors">chaos.studio.mv@gmail.com</a>
+            <span className="hidden sm:inline">•</span>
+            <span>+960 9401011 (Telegram)</span>
+            <span className="hidden sm:inline">•</span>
+            <a href="https://portfolio.chaoticstudio.workers.dev/studio" target="_blank" rel="noopener noreferrer" className="hover:text-brand-accent transition-colors">chaos.studio</a>
           </div>
         </footer>
 
